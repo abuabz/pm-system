@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: pm_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: pm_user
+      POSTGRES_PASSWORD: pm_password
+      POSTGRES_DB: pm_database
+    ports:
+      - "5433:5432"
+    volumes:
+      - pm_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  pm_postgres_data:
