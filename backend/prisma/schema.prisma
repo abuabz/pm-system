@@ -193,6 +193,8 @@ model Task {
   status      TaskStatus   @default(TODO)
   priority    TaskPriority @default(MEDIUM)
   dueDate     DateTime?
+  estimatedHours Float?
+  actualHours    Float?
 
   projectId  String
   assigneeId String?
@@ -213,6 +215,9 @@ model Task {
   @@index([assigneeId])
   @@index([status])
   @@index([deletedAt])
+  @@index([projectId, status])
+  @@index([assigneeId, status])
+  @@index([status, dueDate])
 }
 
 // ==========================================

@@ -16,6 +16,8 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
+import { EventEmitter2 } from '@nestjs/event-emitter';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -24,6 +26,7 @@ export class AuthService {
     private prisma: PrismaService,
     private configService: ConfigService,
     private mailService: MailService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
@@ -53,7 +56,7 @@ export class AuthService {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
-    // Save refresh token session in database
+    // Store refresh token in db
     await this.prisma.userSession.create({
       data: {
         userId: user.id,
@@ -62,6 +65,13 @@ export class AuthService {
         userAgent,
         expiresAt,
       },
+    });
+
+    this.eventEmitter.emit('audit.log', {
+      userId: user.id,
+      action: 'LOGIN',
+      entityType: 'UserSession',
+      entityId: user.id,
     });
 
     return {
@@ -163,6 +173,14 @@ export class AuthService {
         await this.prisma.userSession.delete({
           where: { id: session.id },
         });
+
+        this.eventEmitter.emit('audit.log', {
+          userId: session.userId,
+          action: 'LOGOUT',
+          entityType: 'UserSession',
+          entityId: session.userId,
+        });
+
         break;
       }
     }

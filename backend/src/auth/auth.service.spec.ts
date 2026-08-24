@@ -6,6 +6,7 @@ import { PrismaService } from '../database/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { MailService } from '../mail/mail.service';
 import { BadRequestException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -18,6 +19,10 @@ describe('AuthService', () => {
 
   const mockJwtService = {
     sign: jest.fn(() => 'mock-jwt-token'),
+  };
+
+  const mockEventEmitter = {
+    emit: jest.fn(),
   };
 
   const mockPrismaService = {
@@ -62,6 +67,7 @@ describe('AuthService', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: MailService, useValue: mockMailService },
+        { provide: EventEmitter2, useValue: mockEventEmitter },
       ],
     }).compile();
 
