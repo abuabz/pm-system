@@ -19,7 +19,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: { sub: string; email: string }) {
-    const user = await this.usersService.findById(payload.sub);
+    const user = await this.usersService.findByIdWithRole(payload.sub);
     if (!user || user.accountStatus !== 'ACTIVE') {
       throw new UnauthorizedException('Invalid or inactive user');
     }

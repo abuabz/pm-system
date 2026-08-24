@@ -6,7 +6,6 @@ import { PrismaService } from '../database/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { MailService } from '../mail/mail.service';
 import { BadRequestException } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -73,14 +72,22 @@ describe('AuthService', () => {
   describe('forgotPassword', () => {
     it('should return success message even if email not found (anti-enumeration)', async () => {
       mockUsersService.findByEmail.mockResolvedValue(null);
-      const res = await service.forgotPassword({ email: 'nonexistent@example.com' });
+      const res = await service.forgotPassword({
+        email: 'nonexistent@example.com',
+      });
       expect(res.message).toContain('If an account with that email exists');
       expect(mockMailService.sendPasswordResetEmail).not.toHaveBeenCalled();
     });
 
     it('should generate token and send email if user exists', async () => {
-      mockUsersService.findByEmail.mockResolvedValue({ id: 'user-1', email: 'test@example.com', accountStatus: 'ACTIVE' });
-      mockPrismaService.passwordResetToken.create.mockResolvedValue({ id: 'token-1' });
+      mockUsersService.findByEmail.mockResolvedValue({
+        id: 'user-1',
+        email: 'test@example.com',
+        accountStatus: 'ACTIVE',
+      });
+      mockPrismaService.passwordResetToken.create.mockResolvedValue({
+        id: 'token-1',
+      });
 
       const res = await service.forgotPassword({ email: 'test@example.com' });
       expect(res.message).toContain('If an account with that email exists');
@@ -91,12 +98,16 @@ describe('AuthService', () => {
 
   describe('resetPassword', () => {
     it('should throw BadRequestException if token is invalid format', async () => {
-      await expect(service.resetPassword({ token: 'invalid', newPassword: 'new' })).rejects.toThrow(BadRequestException);
+      await expect(
+        service.resetPassword({ token: 'invalid', newPassword: 'new' }),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw BadRequestException if token is not found or expired', async () => {
       mockPrismaService.passwordResetToken.findMany.mockResolvedValue([]);
-      await expect(service.resetPassword({ token: 'user-1.rawtoken', newPassword: 'new' })).rejects.toThrow(BadRequestException);
+      await expect(
+        service.resetPassword({ token: 'user-1.rawtoken', newPassword: 'new' }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });

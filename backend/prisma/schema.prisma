@@ -37,6 +37,20 @@ enum TaskPriority {
   URGENT
 }
 
+enum ProjectStatus {
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum ProjectPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
 // ==========================================
 // AUTH & AUTHORIZATION MODELS
 // ==========================================
@@ -47,6 +61,8 @@ model User {
   passwordHash  String
   firstName     String
   lastName      String
+  mobile        String?
+  profilePicture String?
   accountStatus AccountStatus @default(ACTIVE)
 
   roleId String?
@@ -143,7 +159,8 @@ model Project {
   id          String    @id @default(uuid())
   name        String
   description String?
-  status      String    @default("ACTIVE")
+  status      ProjectStatus   @default(ACTIVE)
+  priority    ProjectPriority @default(MEDIUM)
   startDate   DateTime?
   endDate     DateTime?
 
