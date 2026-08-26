@@ -8709,9 +8709,6 @@
     "_postman_id": "4faf962f-f962-403c-850e-12a4345bc9ba",
     "name": "Task & Project Management API",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": {
-      "content": "API documentation for the PM System",
-      "type": "text/plain"
-    }
+    "description": "# Authentication Flow\n\n1. **Register** (`POST /api/v1/auth/register`): Create an account.\n2. **Login** (`POST /api/v1/auth/login`): Obtain an `accessToken` and an HTTP-Only `refresh_token` cookie.\n3. **Set Token**: Copy the `accessToken` from the response and paste it into the **Authorization -> Bearer Token** tab of the root collection or update the `bearerToken` environment variable. Postman will automatically send it in all protected requests.\n\n# Variables\n- `baseUrl`: e.g. `http://localhost:3001`\n- `bearerToken`: e.g. `<paste token here>`"
   }
 }

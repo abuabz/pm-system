@@ -1,104 +1,131 @@
 # Full Stack Task & Project Management System
 
-## Project Overview
-This project is a Full Stack Task & Project Management System
+## Overview
+This is a comprehensive Full Stack Task and Project Management System built with a monolithic architecture to help teams orchestrate their work. It provides robust capabilities for managing users, projects, dynamic Kanban-style tasks, file attachments, and hierarchical role-based permissions.
 
-## Technology Stack
-**Frontend:**
-- Next.js (App Router)
-- TypeScript
-- Tailwind CSS
-- TanStack Query
-- Zustand
-- React Hook Form & Zod
-- Axios
+## Architecture
+The system is divided into two primary tiers:
+- **Frontend**: Next.js 16 (App Router), leveraging TanStack Query and Zustand for heavily optimized data fetching and state caching. Styled with Tailwind CSS.
+- **Backend**: NestJS, offering a strongly-typed RESTful API backed by PostgreSQL. Uses Prisma ORM for database migrations and queries.
 
-**Backend:**
-- NestJS
-- TypeScript
-- PostgreSQL
-- Prisma ORM
-- JWT Authentication (planned)
-- Swagger
-
-**Infrastructure:**
-- Docker & Docker Compose
-
-## Folder Structure
-```
-task-project-management/
-├── frontend/             # Next.js App
-├── backend/              # NestJS App
-├── docs/                 # Documentation (Architecture, ERD, etc.)
-├── postman/              # Postman API Collections
-├── docker-compose.yml    # Database setup
-└── README.md             # Project documentation
-```
+For detailed architecture diagrams, see [Architecture Documentation](./docs/architecture.md).
 
 ## Prerequisites
-- Node.js (v18+)
-- npm or yarn
-- Docker Desktop (for database)
+- **Node.js**: v18+ (v20+ recommended)
+- **npm** or **yarn**
+- **Docker & Docker Compose** (for running the database or the entire stack)
 
 ## Installation
 
-1. Install backend dependencies:
-   ```bash
-   cd backend
-   npm install
-   ```
-2. Install frontend dependencies:
-   ```bash
-   cd frontend
-   npm install
-   ```
+Clone the repository and install dependencies for both the frontend and backend environments.
 
-## Environment Variables
+```bash
+# Install backend dependencies
+cd backend
+npm install
 
-### Backend
-Create a `.env` file in the `backend/` directory based on `.env.example`:
-```env
-DATABASE_URL="postgresql://pm_user:pm_password@localhost:5432/pm_database?schema=public"
-PORT=3001
+# Install frontend dependencies
+cd ../frontend
+npm install
 ```
 
-### Frontend
-Create a `.env.local` file in the `frontend/` directory based on `.env.example`:
+## Environment Setup
+
+You must configure environment variables for both services. Example files are provided in each directory.
+
+### Backend (`backend/.env`)
+Copy `backend/.env.example` to `backend/.env` and update the values:
+```env
+DATABASE_URL="postgresql://pm_user:pm_password@localhost:5433/pm_database?schema=public"
+PORT=3001
+JWT_SECRET="your_super_secret_jwt_key_here"
+```
+
+### Frontend (`frontend/.env.local`)
+Copy `frontend/.env.example` to `frontend/.env.local` and update the values:
 ```env
 NEXT_PUBLIC_API_URL="http://localhost:3001/api/v1"
 ```
 
-## Development Commands
+## Database Setup & Migrations
 
-### Start Database
+If you are running the backend locally (not fully via Docker), start the PostgreSQL database first using Docker Compose:
+
 ```bash
-docker compose up -d
+# Start PostgreSQL database (binds to port 5433)
+docker-compose up -d postgres
 ```
 
-### Run Backend
+Once the database is running, apply the database schema via Prisma:
+```bash
+cd backend
+npx prisma migrate deploy
+npx prisma generate
+```
+
+## Running the Application Locally
+
+### Running the Backend
 ```bash
 cd backend
 npm run start:dev
 ```
 
-### Run Frontend
+### Running the Frontend
 ```bash
 cd frontend
 npm run dev
 ```
 
-## Database Commands (Prisma)
-From the `backend/` directory:
-- Generate client: `npx prisma generate`
-- Push schema: `npx prisma db push`
-- Open Studio: `npx prisma studio`
+The frontend will be accessible at `http://localhost:3000`.
 
-## API Documentation Location
-When the backend is running, the Swagger API documentation is available at:
-`http://localhost:3001/api/v1/docs`
+## Docker (Production Environment)
 
-## Testing Commands
-From the `backend/` directory:
-- Unit tests: `npm run test`
-- e2e tests: `npm run test:e2e`
-- Test coverage: `npm run test:cov`
+To run the entire system (Frontend, Backend, and Database) in isolated containers, simply use Docker Compose from the root directory. This will automatically execute database migrations on startup.
+
+```bash
+docker-compose up --build -d
+```
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:3001/api/v1`
+
+## Testing
+
+The system employs strict unit and e2e testing strategies using Jest.
+
+### Backend Tests
+```bash
+cd backend
+npm run test          # Run unit tests
+npm run test:e2e      # Run integration/E2E tests
+npm run test:cov      # Generate coverage report
+```
+
+### Frontend Tests
+```bash
+cd frontend
+npm run test          # Run component and flow tests
+```
+
+## Swagger API Documentation
+
+The backend includes auto-generated OpenAPI documentation. 
+Once the backend is running, navigate to:  
+👉 **`http://localhost:3001/api/v1/docs`**
+
+For more information, see the [API Design Documentation](./docs/api.md).
+
+## Postman
+
+A complete Postman collection is provided in the repository root: `pm-system.postman_collection.json`.
+
+1. Import the file into Postman.
+2. The collection includes environment variables (`{{baseUrl}}` and `{{bearerToken}}`).
+3. View the collection's root description for detailed instructions on the **Authentication Flow** (Register -> Login -> Set Token).
+
+## Assumptions & Limitations
+
+Please read the following documents to understand the context behind architectural decisions and current boundaries of the system:
+- [Assumptions](./docs/assumptions.md)
+- [Limitations](./docs/limitations.md)
+- [Database Schema](./docs/database.md)
