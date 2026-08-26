@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -12,6 +13,24 @@ import { Prisma, ProjectRole } from '@prisma/client';
 @Injectable()
 export class ProjectsService {
   constructor(private prisma: PrismaService) {}
+
+  /**
+   * Helper to verify if the user is authorized to access the project.
+   * Super Admins can access everything. Otherwise, the user must be a ProjectMember.
+   */
+  private async verifyProjectAccess(projectId: string, user: any) {
+    if (user.role?.name === 'Super Admin') return;
+
+    const member = await this.prisma.projectMember.findUnique({
+      where: { projectId_userId: { projectId, userId: user.id } },
+    });
+
+    if (!member) {
+      throw new ForbiddenException(
+        `You do not have access to project ${projectId}`,
+      );
+    }
+  }
 
   async create(createProjectDto: CreateProjectDto, userId: string) {
     // We use a transaction to ensure that the project and its first member (the OWNER)
@@ -86,7 +105,9 @@ export class ProjectsService {
     };
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, user: any) {
+    await this.verifyProjectAccess(id, user);
+
     const project = await this.prisma.project.findFirst({
       where: { id, deletedAt: null },
       include: {
@@ -112,8 +133,8 @@ export class ProjectsService {
     return project;
   }
 
-  async update(id: string, updateProjectDto: UpdateProjectDto) {
-    await this.findOne(id); // Ensure it exists and isn't soft-deleted
+  async update(id: string, updateProjectDto: UpdateProjectDto, user: any) {
+    await this.findOne(id, user); // Ensure it exists, isn't soft-deleted, and user has access
 
     return this.prisma.project.update({
       where: { id },
@@ -121,8 +142,8 @@ export class ProjectsService {
     });
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(id: string, user: any) {
+    await this.findOne(id, user);
 
     return this.prisma.project.update({
       where: { id },
@@ -132,8 +153,8 @@ export class ProjectsService {
 
   // --- Member Management ---
 
-  async addMember(projectId: string, userId: string, role: ProjectRole) {
-    await this.findOne(projectId);
+  async addMember(projectId: string, userId: string, role: ProjectRole, currentUser: any) {
+    await this.findOne(projectId, currentUser);
 
     const existingMember = await this.prisma.projectMember.findUnique({
       where: { projectId_userId: { projectId, userId } },
@@ -148,8 +169,8 @@ export class ProjectsService {
     });
   }
 
-  async updateMemberRole(projectId: string, userId: string, role: ProjectRole) {
-    await this.findOne(projectId);
+  async updateMemberRole(projectId: string, userId: string, role: ProjectRole, currentUser: any) {
+    await this.findOne(projectId, currentUser);
 
     return this.prisma.projectMember.update({
       where: { projectId_userId: { projectId, userId } },
@@ -157,8 +178,8 @@ export class ProjectsService {
     });
   }
 
-  async removeMember(projectId: string, userId: string) {
-    await this.findOne(projectId);
+  async removeMember(projectId: string, userId: string, currentUser: any) {
+    await this.findOne(projectId, currentUser);
 
     const member = await this.prisma.projectMember.findUnique({
       where: { projectId_userId: { projectId, userId } },

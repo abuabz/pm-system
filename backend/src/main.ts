@@ -24,7 +24,7 @@ async function bootstrap() {
 
   // CORS
   app.enableCors({
-    origin: '*', // For development, allow all. Refine for production.
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });

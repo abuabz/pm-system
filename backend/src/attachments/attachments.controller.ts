@@ -19,6 +19,7 @@ import {
   ApiBearerAuth,
   ApiConsumes,
   ApiBody,
+  ApiResponse,
 } from '@nestjs/swagger';
 
 @ApiTags('attachments')
@@ -42,6 +43,9 @@ export class AttachmentsController {
     },
   })
   @ApiOperation({ summary: 'Upload a file attachment to a task' })
+  @ApiResponse({ status: 201, description: 'File successfully uploaded' })
+  @ApiResponse({ status: 400, description: 'File size exceeded or invalid format' })
+  @ApiResponse({ status: 404, description: 'Task not found' })
   uploadAttachment(
     @Param('taskId') taskId: string,
     @UploadedFile(
@@ -60,6 +64,9 @@ export class AttachmentsController {
   @Delete('attachments/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete an attachment' })
+  @ApiResponse({ status: 204, description: 'Attachment successfully deleted' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Attachment not found' })
   remove(@Param('id') id: string, @Req() req: any) {
     return this.attachmentsService.remove(id, req.user);
   }

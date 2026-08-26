@@ -3,6 +3,8 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { ProjectStatus, ProjectPriority } from '@prisma/client';
 
+import { PaginationDto } from '../../common/dto/pagination.dto';
+
 export enum ProjectSortBy {
   CREATED_AT = 'createdAt',
   NAME = 'name',
@@ -15,25 +17,7 @@ export enum SortOrder {
   DESC = 'desc',
 }
 
-export class ProjectQueryDto {
-  @ApiPropertyOptional({ example: 1, description: 'Page number' })
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  page?: number = 1;
-
-  @ApiPropertyOptional({ example: 10, description: 'Items per page' })
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  limit?: number = 10;
-
-  @ApiPropertyOptional({ description: 'Search term for project name' })
-  @IsOptional()
-  @IsString()
-  search?: string;
+export class ProjectQueryDto extends PaginationDto {
 
   @ApiPropertyOptional({ enum: ProjectStatus, description: 'Filter by status' })
   @IsOptional()

@@ -10,6 +10,8 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { AccountStatus } from '@prisma/client';
 
+import { PaginationDto } from '../../common/dto/pagination.dto';
+
 export enum UserSortBy {
   CREATED_AT = 'createdAt',
   FIRST_NAME = 'firstName',
@@ -22,25 +24,7 @@ export enum SortOrder {
   DESC = 'desc',
 }
 
-export class UserQueryDto {
-  @ApiPropertyOptional({ example: 1, description: 'Page number' })
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  page?: number = 1;
-
-  @ApiPropertyOptional({ example: 10, description: 'Items per page' })
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  limit?: number = 10;
-
-  @ApiPropertyOptional({ description: 'Search term for name or email' })
-  @IsOptional()
-  @IsString()
-  search?: string;
+export class UserQueryDto extends PaginationDto {
 
   @ApiPropertyOptional({ enum: AccountStatus, description: 'Filter by status' })
   @IsOptional()

@@ -6,10 +6,14 @@ import {
 import { PrismaService } from '../database/prisma.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
+import { TasksService } from '../tasks/tasks.service';
 
 @Injectable()
 export class CommentsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private tasksService: TasksService,
+  ) {}
 
   async create(taskId: string, createCommentDto: CreateCommentDto, user: any) {
     const { content, mentionedUserIds = [] } = createCommentDto;
@@ -60,7 +64,10 @@ export class CommentsService {
     });
   }
 
-  async findAllByTask(taskId: string) {
+  async findAllByTask(taskId: string, user: any) {
+    // Verify task access first
+    await this.tasksService.findOne(taskId, user);
+
     return this.prisma.comment.findMany({
       where: { taskId, deletedAt: null },
       include: {

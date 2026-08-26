@@ -10,6 +10,8 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { TaskStatus, TaskPriority } from '@prisma/client';
 
+import { PaginationDto } from '../../common/dto/pagination.dto';
+
 export enum TaskSortBy {
   CREATED_AT = 'createdAt',
   DUE_DATE = 'dueDate',
@@ -22,27 +24,7 @@ export enum SortOrder {
   DESC = 'desc',
 }
 
-export class TaskQueryDto {
-  @ApiPropertyOptional({ example: 1, description: 'Page number' })
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  page?: number = 1;
-
-  @ApiPropertyOptional({ example: 10, description: 'Items per page' })
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  limit?: number = 10;
-
-  @ApiPropertyOptional({
-    description: 'Search term for task title or description',
-  })
-  @IsOptional()
-  @IsString()
-  search?: string;
+export class TaskQueryDto extends PaginationDto {
 
   @ApiPropertyOptional({ description: 'Filter by Project ID' })
   @IsOptional()

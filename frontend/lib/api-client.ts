@@ -50,7 +50,8 @@ apiClient.interceptors.response.use(
         // Refresh token is expired or invalid. Logout.
         useAuthStore.getState().logout();
         if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+          // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+        window.location.href = '/login';
         }
         return Promise.reject(refreshError);
       }

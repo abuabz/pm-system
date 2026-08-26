@@ -48,7 +48,7 @@ export default function DashboardPage() {
           <LayoutDashboard className="h-6 w-6 text-blue-500" />
           Dashboard
         </h1>
-        <p className="text-slate-500 mt-1">Welcome back, {user?.firstName || 'User'}! Here's what's happening.</p>
+        <p className="text-slate-500 mt-1">Welcome back, {user?.firstName || 'User'}! Here&apos;s what&apos;s happening.</p>
       </div>
 
       {/* Metrics Grid */}

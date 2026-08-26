@@ -13,7 +13,7 @@ import {
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('comments')
 @ApiBearerAuth()
@@ -23,6 +23,9 @@ export class CommentsController {
 
   @Post('tasks/:taskId/comments')
   @ApiOperation({ summary: 'Add a comment to a task' })
+  @ApiResponse({ status: 201, description: 'Comment successfully added' })
+  @ApiResponse({ status: 400, description: 'Validation failed' })
+  @ApiResponse({ status: 404, description: 'Task not found' })
   create(
     @Param('taskId') taskId: string,
     @Body() createCommentDto: CreateCommentDto,
@@ -33,12 +36,16 @@ export class CommentsController {
 
   @Get('tasks/:taskId/comments')
   @ApiOperation({ summary: 'Get all comments for a task' })
-  findAllByTask(@Param('taskId') taskId: string) {
-    return this.commentsService.findAllByTask(taskId);
+  @ApiResponse({ status: 200, description: 'List of comments' })
+  findAllByTask(@Param('taskId') taskId: string, @Req() req: any) {
+    return this.commentsService.findAllByTask(taskId, req.user);
   }
 
   @Patch('comments/:id')
   @ApiOperation({ summary: 'Update a comment (Author or Admin only)' })
+  @ApiResponse({ status: 200, description: 'Comment successfully updated' })
+  @ApiResponse({ status: 403, description: 'Forbidden: You do not own this comment' })
+  @ApiResponse({ status: 404, description: 'Comment not found' })
   update(
     @Param('id') id: string,
     @Body() updateCommentDto: UpdateCommentDto,
@@ -50,6 +57,9 @@ export class CommentsController {
   @Delete('comments/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Soft delete a comment (Author or Admin only)' })
+  @ApiResponse({ status: 204, description: 'Comment successfully deleted' })
+  @ApiResponse({ status: 403, description: 'Forbidden: You do not own this comment' })
+  @ApiResponse({ status: 404, description: 'Comment not found' })
   remove(@Param('id') id: string, @Req() req: any) {
     return this.commentsService.remove(id, req.user);
   }

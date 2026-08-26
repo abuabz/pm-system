@@ -13,6 +13,30 @@ import { AuditLogEventPayload } from '../../audit-logs/audit-logs.service';
 export class AuditInterceptor implements NestInterceptor {
   constructor(private eventEmitter: EventEmitter2) {}
 
+  private sanitizePayload(data: any): any {
+    if (!data) return data;
+    
+    // If it's an array, map over it
+    if (Array.isArray(data)) {
+      return data.map(item => this.sanitizePayload(item));
+    }
+    
+    // If it's an object, sanitize its keys
+    if (typeof data === 'object' && data !== null) {
+      const sanitized = { ...data };
+      for (const key in sanitized) {
+        if (/password|token|secret/i.test(key)) {
+          sanitized[key] = '[REDACTED]';
+        } else {
+          sanitized[key] = this.sanitizePayload(sanitized[key]);
+        }
+      }
+      return sanitized;
+    }
+    
+    return data;
+  }
+
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const req = context.switchToHttp().getRequest();
     const method = req.method;
@@ -57,7 +81,7 @@ export class AuditInterceptor implements NestInterceptor {
           entityType,
           entityId,
           changes: {
-            requestBody: req.body,
+            requestBody: this.sanitizePayload(req.body),
             // We omit response body to save space unless it's critical, but we can store it
           },
           ipAddress,
