@@ -8,7 +8,6 @@ The system is divided into two primary tiers:
 - **Frontend**: Next.js 16 (App Router), leveraging TanStack Query and Zustand for heavily optimized data fetching and state caching. Styled with Tailwind CSS.
 - **Backend**: NestJS, offering a strongly-typed RESTful API backed by PostgreSQL. Uses Prisma ORM for database migrations and queries.
 
-For detailed architecture diagrams, see [Architecture Documentation](./docs/architecture.md).
 
 ## Prerequisites
 - **Node.js**: v18+ (v20+ recommended)
