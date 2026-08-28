@@ -38,8 +38,14 @@ export default function LoginPage() {
       setError(null);
       const res = await apiClient.post("/auth/login", data);
       
-      setAuth(res.data.data.accessToken, res.data.data.user);
-      router.push("/dashboard");
+      const userPayload = res.data.data.user;
+      setAuth(res.data.data.accessToken, userPayload);
+      
+      if (userPayload?.role?.name === "Developer") {
+        router.push("/projects");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || "Invalid email or password");
     }

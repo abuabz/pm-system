@@ -25,11 +25,16 @@ import { PermissionsGuard } from './common/guards/permissions.guard';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 
 import { EventEmitterModule } from '@nestjs/event-emitter';
-
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
     }),
     EventEmitterModule.forRoot(),
     ThrottlerModule.forRoot([

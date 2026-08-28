@@ -1,13 +1,5 @@
-import {
-  IsOptional,
-  IsString,
-  IsEnum,
-  IsInt,
-  Min,
-  IsUUID,
-} from 'class-validator';
+import { IsOptional, IsEnum, IsUUID, IsString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import { TaskStatus, TaskPriority } from '@prisma/client';
 
 import { PaginationDto } from '../../common/dto/pagination.dto';
@@ -25,6 +17,10 @@ export enum SortOrder {
 }
 
 export class TaskQueryDto extends PaginationDto {
+  @ApiPropertyOptional({ description: 'Search term for title or description' })
+  @IsOptional()
+  @IsString()
+  search?: string;
 
   @ApiPropertyOptional({ description: 'Filter by Project ID' })
   @IsOptional()

@@ -6,6 +6,7 @@ import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import helmet from 'helmet';
 import * as cookieParser from 'cookie-parser';
+import { json, urlencoded } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,6 +15,10 @@ async function bootstrap() {
   // Security
   app.use(helmet());
   app.use(cookieParser());
+
+  // Payload Limits
+  app.use(json({ limit: '10mb' }));
+  app.use(urlencoded({ extended: true, limit: '10mb' }));
 
   // API Prefix and Versioning
   app.setGlobalPrefix('api');

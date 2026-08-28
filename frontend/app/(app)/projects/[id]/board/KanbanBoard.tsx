@@ -6,8 +6,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Paperclip, Calendar } from "lucide-react";
-import { format } from "date-fns";
+import { CheckSquare, Clock, Calendar, MessageSquare, Paperclip } from "lucide-react";
+import { format, isBefore, isToday, startOfDay } from "date-fns";
 import { TaskDetailsModal } from "./TaskDetailsModal";
 
 const COLUMNS = [
@@ -17,12 +17,14 @@ const COLUMNS = [
   { id: "DONE", title: "Done" },
 ];
 
-export default function KanbanBoard({ projectId, initialTasks }: { projectId: string, initialTasks: any[] }) {
+export default function KanbanBoard({ projectId, initialTasks }: { projectId?: string, initialTasks: any[] }) {
   const [tasks, setTasks] = useState(initialTasks);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    console.log("KanbanBoard received initialTasks:", initialTasks);
+    // eslint-disable-next-line
     setTasks(initialTasks);
   }, [initialTasks]);
 
@@ -30,7 +32,8 @@ export default function KanbanBoard({ projectId, initialTasks }: { projectId: st
     mutationFn: ({ id, status }: { id: string, status: string }) => 
       apiClient.patch(`/tasks/${id}/status`, { status }),
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks-global'] });
     }
   });
 
@@ -58,6 +61,23 @@ export default function KanbanBoard({ projectId, initialTasks }: { projectId: st
 
   const getTasksByStatus = (status: string) => {
     return tasks.filter(t => t.status === status);
+  };
+
+  const getCardBgColor = (task: any) => {
+    if (task.status === "DONE") return "bg-green-50 dark:bg-green-900/20";
+    
+    if (task.dueDate) {
+      const due = startOfDay(new Date(task.dueDate));
+      const today = startOfDay(new Date());
+      
+      if (isBefore(due, today)) {
+        return "bg-red-50 dark:bg-red-900/20"; // Overdue
+      }
+      if (isToday(due)) {
+        return "bg-orange-50 dark:bg-orange-900/20"; // Today
+      }
+    }
+    return "bg-white dark:bg-slate-950"; // Default
   };
 
   return (
@@ -89,7 +109,7 @@ export default function KanbanBoard({ projectId, initialTasks }: { projectId: st
                           }}
                         >
                           <Card 
-                            className="hover:border-blue-500 transition-colors shadow-sm cursor-grab active:cursor-grabbing"
+                            className={`hover:border-blue-500 transition-colors shadow-sm cursor-grab active:cursor-grabbing ${getCardBgColor(task)}`}
                             onClick={() => setSelectedTaskId(task.id)}
                           >
                             <CardContent className="p-4">
@@ -117,8 +137,8 @@ export default function KanbanBoard({ projectId, initialTasks }: { projectId: st
                                     <span>{task._count?.attachments || 0}</span>
                                   </div>
                                   {task.assignee && (
-                                    <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold" title={`${task.assignee.firstName} ${task.assignee.lastName}`}>
-                                      {task.assignee.firstName[0]}
+                                    <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold" title={`${task.assignee.name}`}>
+                                      {task.assignee.name.substring(0, 2).toUpperCase()}
                                     </div>
                                   )}
                                 </div>

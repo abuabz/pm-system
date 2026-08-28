@@ -17,7 +17,11 @@ export class MailService {
     this.logger.log(`\n========================================\n`);
   }
 
-  async sendMail(email: string, subject: string, message: string): Promise<void> {
+  async sendMail(
+    email: string,
+    subject: string,
+    message: string,
+  ): Promise<void> {
     this.logger.log(`\n========================================\n`);
     this.logger.log(`MOCK EMAIL SENT TO: ${email}`);
     this.logger.log(`SUBJECT: ${subject}`);

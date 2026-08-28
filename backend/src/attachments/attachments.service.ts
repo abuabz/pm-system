@@ -56,7 +56,7 @@ export class AttachmentsService {
 
     // Only uploader or admin can delete
     const isOwner = attachment.uploaderId === user.id;
-    const isSuperAdmin = user.role?.name === 'Super Admin';
+    const isSuperAdmin = user.role?.name === 'Super Admin' || user.role?.name === 'Admin';
     if (!isOwner && !isSuperAdmin) {
       throw new NotFoundException(
         `You are not authorized to delete this attachment`,

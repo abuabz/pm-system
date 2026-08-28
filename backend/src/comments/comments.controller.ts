@@ -13,7 +13,12 @@ import {
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+} from '@nestjs/swagger';
 
 @ApiTags('comments')
 @ApiBearerAuth()
@@ -44,7 +49,10 @@ export class CommentsController {
   @Patch('comments/:id')
   @ApiOperation({ summary: 'Update a comment (Author or Admin only)' })
   @ApiResponse({ status: 200, description: 'Comment successfully updated' })
-  @ApiResponse({ status: 403, description: 'Forbidden: You do not own this comment' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden: You do not own this comment',
+  })
   @ApiResponse({ status: 404, description: 'Comment not found' })
   update(
     @Param('id') id: string,
@@ -58,7 +66,10 @@ export class CommentsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Soft delete a comment (Author or Admin only)' })
   @ApiResponse({ status: 204, description: 'Comment successfully deleted' })
-  @ApiResponse({ status: 403, description: 'Forbidden: You do not own this comment' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden: You do not own this comment',
+  })
   @ApiResponse({ status: 404, description: 'Comment not found' })
   remove(@Param('id') id: string, @Req() req: any) {
     return this.commentsService.remove(id, req.user);

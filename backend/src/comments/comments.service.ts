@@ -53,7 +53,7 @@ export class CommentsService {
             data: validUserIds.map((userId) => ({
               userId,
               title: 'You were mentioned',
-              message: `${user.firstName} ${user.lastName} mentioned you in a comment.`,
+              message: `${user.name} mentioned you in a comment.`,
               type: 'MENTION',
             })),
           });
@@ -74,14 +74,13 @@ export class CommentsService {
         author: {
           select: {
             id: true,
-            firstName: true,
-            lastName: true,
+            name: true,
             profilePicture: true,
           },
         },
         mentions: {
           include: {
-            user: { select: { id: true, firstName: true, lastName: true } },
+            user: { select: { id: true, name: true } },
           },
         },
       },
@@ -111,7 +110,7 @@ export class CommentsService {
         p.permission.action === 'update' &&
         p.permission.resource === 'comments',
     );
-    const isSuperAdmin = user.role?.name === 'Super Admin';
+    const isSuperAdmin = user.role?.name === 'Super Admin' || user.role?.name === 'Admin';
 
     if (!isOwner && !hasGlobalPermission && !isSuperAdmin) {
       throw new ForbiddenException('You can only modify your own comments');

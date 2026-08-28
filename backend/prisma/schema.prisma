@@ -13,7 +13,6 @@ datasource db {
 enum AccountStatus {
   ACTIVE
   INACTIVE
-  SUSPENDED
 }
 
 enum ProjectRole {
@@ -59,8 +58,7 @@ model User {
   id            String        @id @default(uuid())
   email         String        @unique
   passwordHash  String
-  firstName     String
-  lastName      String
+  name          String
   mobile        String?
   profilePicture String?
   accountStatus AccountStatus @default(ACTIVE)

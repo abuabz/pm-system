@@ -116,6 +116,7 @@ export class AuthController {
     };
   }
 
+  @Public()
   @Post('logout')
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
@@ -134,7 +135,10 @@ export class AuthController {
   @Get('me')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile' })
-  @ApiResponse({ status: 200, description: 'User profile retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'User profile retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   getProfile(@CurrentUser() user: any) {
     return user;
@@ -144,7 +148,10 @@ export class AuthController {
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Request password reset email' })
-  @ApiResponse({ status: 200, description: 'Password reset email sent if user exists' })
+  @ApiResponse({
+    status: 200,
+    description: 'Password reset email sent if user exists',
+  })
   @ApiResponse({ status: 400, description: 'Validation failed' })
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     return this.authService.forgotPassword(forgotPasswordDto);
@@ -155,7 +162,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Reset password using token' })
   @ApiResponse({ status: 200, description: 'Password reset successfully' })
-  @ApiResponse({ status: 400, description: 'Validation failed or invalid/expired token' })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation failed or invalid/expired token',
+  })
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     return this.authService.resetPassword(resetPasswordDto);
   }
@@ -165,7 +175,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Change current user password' })
   @ApiResponse({ status: 200, description: 'Password changed successfully' })
-  @ApiResponse({ status: 400, description: 'Validation failed or incorrect current password' })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation failed or incorrect current password',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async changePassword(
     @CurrentUser() user: any,

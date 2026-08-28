@@ -55,11 +55,27 @@ export class ProjectsService {
         },
       });
 
+      if (createProjectDto.memberIds && createProjectDto.memberIds.length > 0) {
+        // filter out owner just in case they were included
+        const additionalMembers = createProjectDto.memberIds.filter(id => id !== userId);
+        
+        if (additionalMembers.length > 0) {
+          await tx.projectMember.createMany({
+            data: additionalMembers.map(id => ({
+              projectId: project.id,
+              userId: id,
+              role: ProjectRole.MEMBER,
+            })),
+            skipDuplicates: true,
+          });
+        }
+      }
+
       return project;
     });
   }
 
-  async findAll(query: ProjectQueryDto) {
+  async findAll(query: ProjectQueryDto, user: any) {
     const {
       page = 1,
       limit = 10,
@@ -79,6 +95,14 @@ export class ProjectsService {
         name: { contains: search, mode: 'insensitive' },
       }),
     };
+
+    if (user?.role?.name !== 'Super Admin' && user?.role?.name !== 'Admin') {
+      where.members = {
+        some: {
+          userId: user.id
+        }
+      };
+    }
 
     const [projects, total] = await Promise.all([
       this.prisma.project.findMany({
@@ -116,9 +140,8 @@ export class ProjectsService {
             user: {
               select: {
                 id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
+                name: true,
+                profilePicture: true,
               },
             },
           },
@@ -153,7 +176,12 @@ export class ProjectsService {
 
   // --- Member Management ---
 
-  async addMember(projectId: string, userId: string, role: ProjectRole, currentUser: any) {
+  async addMember(
+    projectId: string,
+    userId: string,
+    role: ProjectRole,
+    currentUser: any,
+  ) {
     await this.findOne(projectId, currentUser);
 
     const existingMember = await this.prisma.projectMember.findUnique({
@@ -169,7 +197,12 @@ export class ProjectsService {
     });
   }
 
-  async updateMemberRole(projectId: string, userId: string, role: ProjectRole, currentUser: any) {
+  async updateMemberRole(
+    projectId: string,
+    userId: string,
+    role: ProjectRole,
+    currentUser: any,
+  ) {
     await this.findOne(projectId, currentUser);
 
     return this.prisma.projectMember.update({

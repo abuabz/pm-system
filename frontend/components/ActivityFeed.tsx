@@ -7,8 +7,7 @@ interface Activity {
   entityId: string;
   createdAt: string;
   user?: {
-    firstName: string;
-    lastName: string;
+    name: string;
   };
 }
 
@@ -40,7 +39,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
             <div className="flex flex-col flex-1">
               <p className="text-sm text-slate-900 dark:text-white">
                 <span className="font-medium">
-                  {activity.user ? `${activity.user.firstName} ${activity.user.lastName}` : 'System'}
+                  {activity.user ? `${activity.user.name}` : 'System'}
                 </span>{' '}
                 {activity.action.toLowerCase()}{' '}
                 <span className="font-medium">{activity.entityType}</span> ({activity.entityId.slice(0,8)})

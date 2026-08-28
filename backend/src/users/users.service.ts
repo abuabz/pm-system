@@ -16,6 +16,7 @@ export class UsersService {
   async findByEmail(email: string): Promise<User | null> {
     return this.prisma.user.findUnique({
       where: { email },
+      include: { role: true }
     });
   }
 
@@ -72,8 +73,7 @@ export class UsersService {
       ...(roleId && { roleId }),
       ...(search && {
         OR: [
-          { firstName: { contains: search, mode: 'insensitive' } },
-          { lastName: { contains: search, mode: 'insensitive' } },
+          { name: { contains: search, mode: 'insensitive' } },
           { email: { contains: search, mode: 'insensitive' } },
         ],
       }),

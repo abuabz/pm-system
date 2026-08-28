@@ -15,12 +15,12 @@ export class AuditInterceptor implements NestInterceptor {
 
   private sanitizePayload(data: any): any {
     if (!data) return data;
-    
+
     // If it's an array, map over it
     if (Array.isArray(data)) {
-      return data.map(item => this.sanitizePayload(item));
+      return data.map((item) => this.sanitizePayload(item));
     }
-    
+
     // If it's an object, sanitize its keys
     if (typeof data === 'object' && data !== null) {
       const sanitized = { ...data };
@@ -33,7 +33,7 @@ export class AuditInterceptor implements NestInterceptor {
       }
       return sanitized;
     }
-    
+
     return data;
   }
 

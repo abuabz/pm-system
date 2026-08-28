@@ -12,19 +12,19 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { useState, useEffect } from "react";
 
-const createUserSchema = z.object({
+const editUserSchema = z.object({
   name: z.string().min(2, "Name is required"),
   email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters").optional().or(z.literal("")),
   mobile: z.string().min(10, "Invalid mobile number").optional().or(z.literal("")),
-  roleId: z.string().min(1, "Role is required"),
+  roleId: z.string().optional(),
   accountStatus: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),
   profilePicture: z.string().optional().or(z.literal("")),
 });
 
-type CreateUserFormValues = z.infer<typeof createUserSchema>;
+type EditUserFormValues = z.infer<typeof editUserSchema>;
 
-export function CreateUserModal({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
+export function EditUserModal({ open, onOpenChange, user }: { open: boolean, onOpenChange: (open: boolean) => void, user: any }) {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
@@ -36,24 +36,13 @@ export function CreateUserModal({ open, onOpenChange }: { open: boolean, onOpenC
     }
   });
 
-  const { register, handleSubmit, formState: { errors, isSubmitting }, reset, setValue, watch } = useForm<CreateUserFormValues>({
-    resolver: zodResolver(createUserSchema),
+  const { register, handleSubmit, formState: { errors, isSubmitting }, reset, setValue, watch } = useForm<EditUserFormValues>({
+    resolver: zodResolver(editUserSchema),
     defaultValues: {
       accountStatus: "ACTIVE",
-      profilePicture: "",
-      roleId: ""
+      profilePicture: ""
     }
   });
-
-  useEffect(() => {
-    if (rolesData?.data) {
-      const developerRole = rolesData.data.find((r: any) => r.name === 'Developer');
-      const currentRoleId = watch('roleId');
-      if (developerRole && !currentRoleId) {
-        setValue('roleId', developerRole.id);
-      }
-    }
-  }, [rolesData, setValue, watch]);
 
   const profilePicture = watch("profilePicture");
 
@@ -73,19 +62,37 @@ export function CreateUserModal({ open, onOpenChange }: { open: boolean, onOpenC
     }
   };
 
+  useEffect(() => {
+    if (user && open) {
+      reset({
+        name: user.name,
+        email: user.email,
+        mobile: user.mobile || "",
+        roleId: user.roleId || "",
+        accountStatus: user.accountStatus || "ACTIVE",
+        profilePicture: user.profilePicture || "",
+        password: "", // Don't populate password
+      });
+    }
+  }, [user, open, reset]);
+
   const mutation = useMutation({
-    mutationFn: (data: CreateUserFormValues) => apiClient.post("/users", data),
+    mutationFn: (data: EditUserFormValues) => {
+      // Remove empty password so we don't accidentally update it
+      if (!data.password) delete data.password;
+      return apiClient.patch(`/users/${user.id}`, data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       reset();
       onOpenChange(false);
     },
     onError: (err: any) => {
-      setError(err.response?.data?.message || "Failed to create user");
+      setError(err.response?.data?.message || "Failed to update user");
     }
   });
 
-  const onSubmit = (data: CreateUserFormValues) => {
+  const onSubmit = (data: EditUserFormValues) => {
     setError(null);
     if (!data.profilePicture) delete data.profilePicture;
     mutation.mutate(data);
@@ -94,8 +101,8 @@ export function CreateUserModal({ open, onOpenChange }: { open: boolean, onOpenC
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogHeader>
-        <DialogTitle>Create New User</DialogTitle>
-        <DialogDescription>Add a new user to the system. They will receive an email to set their password if configured.</DialogDescription>
+        <DialogTitle>Edit User</DialogTitle>
+        <DialogDescription>Update the details of this user.</DialogDescription>
       </DialogHeader>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -150,14 +157,14 @@ export function CreateUserModal({ open, onOpenChange }: { open: boolean, onOpenC
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label htmlFor="password">Initial Password</Label>
-            <Input id="password" type="password" {...register("password")} />
+            <Label htmlFor="password">New Password (Optional)</Label>
+            <Input id="password" type="password" placeholder="Leave blank to keep current" {...register("password")} />
             {errors.password && <span className="text-xs text-red-500">{errors.password.message}</span>}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="roleId">Role</Label>
             <Select id="roleId" {...register("roleId")} disabled={isLoadingRoles}>
-              <option value="">Select a role</option>
+              <option value="">Select a role (optional)</option>
               {rolesData?.data?.map((role: any) => (
                 <option key={role.id} value={role.id}>
                   {role.name}
@@ -181,7 +188,7 @@ export function CreateUserModal({ open, onOpenChange }: { open: boolean, onOpenC
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create User"}
+            {isSubmitting ? "Saving..." : "Save Changes"}
           </Button>
         </DialogFooter>
       </form>

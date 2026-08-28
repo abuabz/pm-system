@@ -16,7 +16,12 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectQueryDto } from './dto/project-query.dto';
 import { AddProjectMemberDto } from './dto/add-member.dto';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { Permissions } from '../common/decorators/permissions.decorator';
 import { ProjectRole } from '@prisma/client';
 
@@ -42,8 +47,8 @@ export class ProjectsController {
   @ApiOperation({ summary: 'Get all projects with pagination and filtering' })
   @ApiResponse({ status: 200, description: 'Return paginated projects list' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
-  findAll(@Query() query: ProjectQueryDto) {
-    return this.projectsService.findAll(query);
+  findAll(@Query() query: ProjectQueryDto, @Req() req: any) {
+    return this.projectsService.findAll(query, req.user);
   }
 
   @Get(':id')
@@ -63,7 +68,11 @@ export class ProjectsController {
   @ApiResponse({ status: 400, description: 'Validation failed' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Project not found' })
-  update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto, @Req() req: any) {
+  update(
+    @Param('id') id: string,
+    @Body() updateProjectDto: UpdateProjectDto,
+    @Req() req: any,
+  ) {
     return this.projectsService.update(id, updateProjectDto, req.user);
   }
 
@@ -97,7 +106,7 @@ export class ProjectsController {
       id,
       addMemberDto.userId,
       addMemberDto.role,
-      req.user
+      req.user,
     );
   }
 
@@ -124,7 +133,11 @@ export class ProjectsController {
   @ApiResponse({ status: 204, description: 'Member successfully removed' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Project member not found' })
-  removeMember(@Param('id') id: string, @Param('userId') userId: string, @Req() req: any) {
+  removeMember(
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+    @Req() req: any,
+  ) {
     return this.projectsService.removeMember(id, userId, req.user);
   }
 }

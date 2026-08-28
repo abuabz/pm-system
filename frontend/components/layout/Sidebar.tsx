@@ -21,13 +21,16 @@ export function Sidebar() {
   const router = useRouter();
 
   const navigation = [
-    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Projects", href: "/projects", icon: FolderOpen },
     { name: "Tasks", href: "/tasks", icon: CheckSquare },
-    { name: "Reports", href: "/reports", icon: BarChart },
   ];
 
-  if (user?.role === "ADMIN") {
+  if (user?.role?.name !== "Developer") {
+    navigation.unshift({ name: "Dashboard", href: "/dashboard", icon: LayoutDashboard });
+    navigation.push({ name: "Reports", href: "/reports", icon: BarChart });
+  }
+
+  if (user?.role?.name === "Super Admin" || user?.role?.name === "Admin") {
     navigation.splice(1, 0, { name: "Users", href: "/users", icon: Users });
   }
 

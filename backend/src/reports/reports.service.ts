@@ -6,7 +6,9 @@ export class ReportsService {
   constructor(private prisma: PrismaService) {}
 
   async getProjectProgress(projectId?: string) {
-    const whereClause = projectId ? { projectId, deletedAt: null } : { deletedAt: null };
+    const whereClause = projectId
+      ? { projectId, deletedAt: null }
+      : { deletedAt: null };
 
     // Group tasks by project and status
     const tasks = await this.prisma.task.findMany({
@@ -21,7 +23,15 @@ export class ReportsService {
     });
 
     // We can aggregate in memory to calculate accurate percentages per project
-    const projectStats: Record<string, { name: string; total: number; done: number; statusCounts: Record<string, number> }> = {};
+    const projectStats: Record<
+      string,
+      {
+        name: string;
+        total: number;
+        done: number;
+        statusCounts: Record<string, number>;
+      }
+    > = {};
 
     for (const task of tasks) {
       if (!projectStats[task.projectId]) {
@@ -32,7 +42,7 @@ export class ReportsService {
           statusCounts: { TODO: 0, IN_PROGRESS: 0, IN_REVIEW: 0, DONE: 0 },
         };
       }
-      
+
       const stats = projectStats[task.projectId];
       stats.total += 1;
       stats.statusCounts[task.status] += 1;
@@ -43,7 +53,8 @@ export class ReportsService {
 
     return Object.values(projectStats).map((stat) => ({
       ...stat,
-      completionPercentage: stat.total > 0 ? Math.round((stat.done / stat.total) * 100) : 0,
+      completionPercentage:
+        stat.total > 0 ? Math.round((stat.done / stat.total) * 100) : 0,
     }));
   }
 
@@ -65,21 +76,31 @@ export class ReportsService {
       select: {
         assigneeId: true,
         assignee: {
-          select: { firstName: true, lastName: true },
+          select: { name: true },
         },
         estimatedHours: true,
         actualHours: true,
       },
     });
 
-    const userStats: Record<string, { name: string; tasksCompleted: number; totalEstimated: number; totalActual: number }> = {};
+    const userStats: Record<
+      string,
+      {
+        name: string;
+        tasksCompleted: number;
+        totalEstimated: number;
+        totalActual: number;
+      }
+    > = {};
 
     for (const task of tasks) {
       if (!task.assigneeId) continue;
-      
+
       if (!userStats[task.assigneeId]) {
         userStats[task.assigneeId] = {
-          name: task.assignee ? `${task.assignee.firstName} ${task.assignee.lastName}` : 'Unknown User',
+          name: task.assignee
+            ? `${task.assignee.name}`
+            : 'Unknown User',
           tasksCompleted: 0,
           totalEstimated: 0,
           totalActual: 0,
@@ -111,7 +132,7 @@ export class ReportsService {
       },
     });
 
-    return stats.map(s => ({
+    return stats.map((s) => ({
       status: s.status,
       count: s._count.id,
       estimatedHours: s._sum.estimatedHours || 0,
@@ -131,7 +152,7 @@ export class ReportsService {
       where: whereClause,
       include: {
         project: { select: { name: true } },
-        assignee: { select: { firstName: true, lastName: true } },
+        assignee: { select: { name: true } },
       },
       orderBy: { dueDate: 'asc' },
     });

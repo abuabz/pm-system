@@ -47,7 +47,7 @@ export class TasksService {
         description: createTaskDto.description,
         status: createTaskDto.status,
         priority: createTaskDto.priority,
-        dueDate: createTaskDto.dueDate,
+        dueDate: createTaskDto.dueDate ? new Date(createTaskDto.dueDate).toISOString() : undefined,
         estimatedHours: createTaskDto.estimatedHours,
         actualHours: createTaskDto.actualHours,
         projectId: createTaskDto.projectId,
@@ -103,7 +103,7 @@ export class TasksService {
 
     // If no specific project is requested and the user isn't Super Admin,
     // restrict results to projects they are members of.
-    if (!projectId && user.role?.name !== 'Super Admin') {
+    if (!projectId && user.role?.name !== 'Super Admin' && user.role?.name !== 'Admin') {
       where.project = {
         members: {
           some: { userId: user.id },
@@ -118,22 +118,29 @@ export class TasksService {
         take: limit,
         orderBy: { [sortBy]: sortOrder },
         include: {
+          project: {
+            select: { id: true, name: true }
+          },
           assignee: {
             select: {
               id: true,
-              firstName: true,
-              lastName: true,
+              name: true,
               profilePicture: true,
             },
           },
           reporter: {
             select: {
               id: true,
-              firstName: true,
-              lastName: true,
+              name: true,
               profilePicture: true,
             },
           },
+          _count: {
+            select: {
+              comments: { where: { deletedAt: null } },
+              attachments: { where: { deletedAt: null } }
+            }
+          }
         },
       }),
       this.prisma.task.count({ where }),
@@ -154,12 +161,19 @@ export class TasksService {
       where: { id, deletedAt: null },
       include: {
         assignee: {
-          select: { id: true, firstName: true, lastName: true, email: true },
+          select: { id: true, name: true, email: true },
         },
         reporter: {
-          select: { id: true, firstName: true, lastName: true, email: true },
+          select: { id: true, name: true, email: true, profilePicture: true },
         },
         project: { select: { id: true, name: true } },
+        attachments: { where: { deletedAt: null } },
+        _count: {
+          select: {
+            comments: { where: { deletedAt: null } },
+            attachments: { where: { deletedAt: null } }
+          }
+        }
       },
     });
 
@@ -177,6 +191,10 @@ export class TasksService {
     // If moving task to another project, verify access to the new project too
     if (updateTaskDto.projectId && updateTaskDto.projectId !== task.projectId) {
       await this.verifyProjectAccess(updateTaskDto.projectId, user);
+    }
+
+    if (updateTaskDto.dueDate) {
+      updateTaskDto.dueDate = new Date(updateTaskDto.dueDate).toISOString();
     }
 
     const updatedTask = await this.prisma.task.update({

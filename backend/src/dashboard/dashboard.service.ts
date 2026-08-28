@@ -69,7 +69,7 @@ export class DashboardService {
       take: 10,
       include: {
         user: {
-          select: { firstName: true, lastName: true, profilePicture: true },
+          select: { name: true, profilePicture: true },
         },
       },
     });

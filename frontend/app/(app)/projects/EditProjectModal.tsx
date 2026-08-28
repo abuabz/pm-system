@@ -14,7 +14,7 @@ import { apiClient } from "@/lib/api-client";
 import { useState, useRef, useEffect } from "react";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 
-const createProjectSchema = z.object({
+const editProjectSchema = z.object({
   name: z.string().min(2, "Name is required"),
   description: z.string().optional(),
   startDate: z.string().min(1, "Start date is required"),
@@ -24,22 +24,37 @@ const createProjectSchema = z.object({
   memberIds: z.array(z.string()).optional(),
 });
 
-type CreateProjectFormValues = z.infer<typeof createProjectSchema>;
+type EditProjectFormValues = z.infer<typeof editProjectSchema>;
 
-export function CreateProjectModal({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
+export function EditProjectModal({ open, onOpenChange, project }: { open: boolean, onOpenChange: (open: boolean) => void, project: any }) {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting }, reset } = useForm<CreateProjectFormValues>({
-    resolver: zodResolver(createProjectSchema),
+  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting }, reset } = useForm<EditProjectFormValues>({
+    resolver: zodResolver(editProjectSchema),
     defaultValues: {
       priority: "MEDIUM",
       status: "ACTIVE",
       memberIds: []
     }
   });
+
+  // When project changes, update form
+  useEffect(() => {
+    if (project && open) {
+      reset({
+        name: project.name,
+        description: project.description || "",
+        startDate: new Date(project.startDate).toISOString().split('T')[0],
+        endDate: new Date(project.endDate).toISOString().split('T')[0],
+        priority: project.priority,
+        status: project.status,
+        memberIds: project.members?.map((m: any) => m.userId) || []
+      });
+    }
+  }, [project, open, reset]);
 
   const { data: usersData, isLoading: isLoadingUsers } = useQuery({
     queryKey: ['users'],
@@ -50,18 +65,19 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean, onOp
   });
 
   const mutation = useMutation({
-    mutationFn: (data: CreateProjectFormValues) => apiClient.post("/projects", data),
+    mutationFn: (data: EditProjectFormValues) => apiClient.patch(`/projects/${project.id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['project', project?.id] });
       reset();
       onOpenChange(false);
     },
     onError: (err: any) => {
-      setError(err.response?.data?.message || "Failed to create project");
+      setError(err.response?.data?.message || "Failed to update project");
     }
   });
 
-  const onSubmit = (data: CreateProjectFormValues) => {
+  const onSubmit = (data: EditProjectFormValues) => {
     // Ensure dates are correctly formatted as ISO or simple YYYY-MM-DD
     setError(null);
     mutation.mutate({
@@ -74,8 +90,8 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean, onOp
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogHeader>
-        <DialogTitle>Create New Project</DialogTitle>
-        <DialogDescription>Add a new project and become its owner automatically.</DialogDescription>
+        <DialogTitle>Edit Project</DialogTitle>
+        <DialogDescription>Update project details and manage team members.</DialogDescription>
       </DialogHeader>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -218,7 +234,7 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean, onOp
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create Project"}
+            {isSubmitting ? "Saving..." : "Save Changes"}
           </Button>
         </DialogFooter>
       </form>

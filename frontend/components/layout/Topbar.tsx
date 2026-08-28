@@ -28,7 +28,7 @@ export function Topbar() {
     enabled: !!user,
   });
 
-  const unreadCount = notifications?.data?.filter((n: Record<string, unknown>) => !n.read).length || 0;
+  const unreadCount = notifications?.data?.items?.filter((n: Record<string, unknown>) => !n.readAt).length || 0;
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6 dark:border-slate-800 dark:bg-slate-950">
@@ -67,11 +67,11 @@ export function Topbar() {
                 Notifications
               </div>
               <div className="max-h-64 overflow-y-auto">
-                {notifications?.data?.length === 0 ? (
+                {notifications?.data?.items?.length === 0 ? (
                   <div className="px-4 py-3 text-sm text-slate-500 text-center">No notifications</div>
                 ) : (
-                  notifications?.data?.map((n: Record<string, unknown>) => (
-                    <div key={n.id} className={`px-4 py-3 text-sm border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 ${!n.read ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
+                  notifications?.data?.items?.map((n: Record<string, unknown>) => (
+                    <div key={n.id as string} className={`px-4 py-3 text-sm border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 ${!n.readAt ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
                       <div className="font-medium text-slate-900 dark:text-slate-100">{n.title}</div>
                       <div className="text-slate-500 dark:text-slate-400 text-xs mt-1">{n.message}</div>
                     </div>
@@ -84,8 +84,8 @@ export function Topbar() {
 
         <div className="flex items-center gap-3 border-l border-slate-200 pl-4 dark:border-slate-800">
           <div className="flex flex-col text-right">
-            <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{user?.firstName} {user?.lastName}</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400 capitalize">{user?.role?.toLowerCase()}</span>
+            <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{user?.name}</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 capitalize">{user?.role?.name?.toLowerCase() || 'User'}</span>
           </div>
           <div className="h-9 w-9 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
             {user?.profilePicture ? (

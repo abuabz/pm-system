@@ -2,12 +2,16 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
-import { use } from "react";
+import { use, useState } from "react";
 import KanbanBoard from "./KanbanBoard";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { CreateTaskModal } from "@/components/tasks/CreateTaskModal";
 
 export default function ProjectBoardPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const projectId = resolvedParams.id;
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const { data: project, isLoading: projectLoading } = useQuery({
     queryKey: ['project', projectId],
@@ -31,12 +35,23 @@ export default function ProjectBoardPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="flex flex-col h-[calc(100vh-120px)]">
-      <div className="mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold">{project?.data?.name} - Board</h1>
+        <Button onClick={() => setIsCreateModalOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" /> Add Task
+        </Button>
       </div>
       <div className="flex-1 overflow-x-auto">
-        <KanbanBoard projectId={projectId} initialTasks={tasks?.data || []} />
+        <KanbanBoard projectId={projectId} initialTasks={tasks?.data?.data || []} />
       </div>
+      
+      <CreateTaskModal 
+        open={isCreateModalOpen} 
+        onOpenChange={setIsCreateModalOpen} 
+        projectId={projectId} 
+        projectName={project?.data?.name || 'Project'}
+        projectMembers={project?.data?.members || []} 
+      />
     </div>
   );
 }

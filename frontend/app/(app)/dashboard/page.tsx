@@ -26,7 +26,7 @@ export default function DashboardPage() {
       const response = await apiClient.get('/dashboard/metrics');
       return response.data;
     },
-    enabled: !!user,
+    enabled: !!user && user?.role?.name !== "Developer",
   });
 
   if (isError) {
@@ -41,6 +41,14 @@ export default function DashboardPage() {
     );
   }
 
+  if (user?.role?.name === "Developer") {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-slate-500">You do not have permission to view the Dashboard.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 max-w-7xl mx-auto w-full">
       <div className="mb-8">
@@ -48,7 +56,7 @@ export default function DashboardPage() {
           <LayoutDashboard className="h-6 w-6 text-blue-500" />
           Dashboard
         </h1>
-        <p className="text-slate-500 mt-1">Welcome back, {user?.firstName || 'User'}! Here&apos;s what&apos;s happening.</p>
+        <p className="text-slate-500 mt-1">Welcome back, {user?.name || 'User'}! Here&apos;s what&apos;s happening.</p>
       </div>
 
       {/* Metrics Grid */}
@@ -59,29 +67,29 @@ export default function DashboardPage() {
           <>
             <MetricCard 
               title="Total Projects" 
-              value={data.totalProjects} 
+              value={data.data.totalProjects} 
               icon={<Folder className="h-5 w-5" />} 
             />
             <MetricCard 
               title="Active Projects" 
-              value={data.activeProjects} 
+              value={data.data.activeProjects} 
               icon={<Activity className="h-5 w-5 text-blue-500" />} 
             />
             <MetricCard 
               title="Completed Tasks" 
-              value={data.completedTasks} 
+              value={data.data.completedTasks} 
               icon={<CheckCircle2 className="h-5 w-5 text-emerald-500" />} 
             />
             <MetricCard 
               title="Pending Tasks" 
-              value={data.pendingTasks} 
+              value={data.data.pendingTasks} 
               icon={<Clock className="h-5 w-5 text-amber-500" />} 
             />
             <MetricCard 
               title="Overdue Tasks" 
-              value={data.overdueTasks} 
+              value={data.data.overdueTasks} 
               icon={<AlertTriangle className="h-5 w-5 text-red-500" />} 
-              className={data.overdueTasks > 0 ? "border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10" : ""}
+              className={data.data.overdueTasks > 0 ? "border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10" : ""}
             />
           </>
         )}
@@ -89,10 +97,10 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          {isLoading || !data ? <ProductivityChartSkeleton /> : <ProductivityChart data={data.productivityData} />}
+          {isLoading || !data ? <ProductivityChartSkeleton /> : <ProductivityChart data={data.data.productivityData} />}
         </div>
         <div>
-          {isLoading || !data ? <ActivityFeedSkeleton /> : <ActivityFeed activities={data.recentActivities} />}
+          {isLoading || !data ? <ActivityFeedSkeleton /> : <ActivityFeed activities={data.data.recentActivities} />}
         </div>
       </div>
     </div>

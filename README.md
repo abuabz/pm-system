@@ -129,3 +129,10 @@ Please read the following documents to understand the context behind architectur
 - [Assumptions](./docs/assumptions.md)
 - [Limitations](./docs/limitations.md)
 - [Database Schema](./docs/database.md)
+
+## AI Policy & Development Context
+
+In accordance with the SNEC technical assessment guidelines, AI tools were utilized strictly as a development assistant.
+- **AI Utilization:** AI was heavily leveraged to generate boilerplate code (e.g., standard Prisma schemas, basic DTOs, Jest test scaffolds) and assist with repetitive front-end component implementations using Tailwind CSS.
+- **Human Orchestration:** The core business logic, architectural boundaries (NestJS Modular architecture), database indexing strategies, JWT token rotation mechanisms, and strict Role-Based Access Control logic were intentionally designed, orchestrated, and strictly reviewed by the candidate.
+- **Understanding & Accountability:** The candidate retains full comprehension of the entire lifecycle of a request from the Next.js `App Router` through to the PostgreSQL transactional layer, and can confidently explain, refactor, or debug any abstraction in this repository (Interceptors, Guards, Prisma Migrations, TanStack Query states).

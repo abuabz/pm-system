@@ -13,8 +13,7 @@ import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
 
 const registerSchema = z.object({
-  firstName: z.string().min(2, "First name must be at least 2 characters"),
-  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   mobile: z.string().min(10, "Invalid mobile number"),
@@ -39,7 +38,7 @@ export default function RegisterPage() {
       setError(null);
       await apiClient.post("/auth/register", data);
       router.push("/login?registered=true");
-    } catch (err: any) {
+    } catch (err: any  ) {
       setError(err.response?.data?.message || "Failed to register");
     }
   };
@@ -56,31 +55,17 @@ export default function RegisterPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="firstName">First name</Label>
-            <div className="mt-1">
-              <Input id="firstName" {...register("firstName")} />
-              {errors.firstName && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.firstName.message}
+          <div className="space-y-2">
+            <Label htmlFor="name">Full Name</Label>
+            <div className="space-y-1">
+              <Input id="name" {...register("name")} />
+              {errors.name && (
+                <p className="text-sm text-red-500">
+                  {errors.name.message}
                 </p>
               )}
             </div>
           </div>
-
-          <div>
-            <Label htmlFor="lastName">Last name</Label>
-            <div className="mt-1">
-              <Input id="lastName" {...register("lastName")} />
-              {errors.lastName && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.lastName.message}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
 
         <div>
           <Label htmlFor="email">Email address</Label>

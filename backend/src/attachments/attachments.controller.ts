@@ -44,7 +44,10 @@ export class AttachmentsController {
   })
   @ApiOperation({ summary: 'Upload a file attachment to a task' })
   @ApiResponse({ status: 201, description: 'File successfully uploaded' })
-  @ApiResponse({ status: 400, description: 'File size exceeded or invalid format' })
+  @ApiResponse({
+    status: 400,
+    description: 'File size exceeded or invalid format',
+  })
   @ApiResponse({ status: 404, description: 'Task not found' })
   uploadAttachment(
     @Param('taskId') taskId: string,

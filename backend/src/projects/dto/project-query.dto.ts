@@ -1,6 +1,5 @@
-import { IsOptional, IsString, IsEnum, IsInt, Min } from 'class-validator';
+import { IsOptional, IsEnum, IsString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import { ProjectStatus, ProjectPriority } from '@prisma/client';
 
 import { PaginationDto } from '../../common/dto/pagination.dto';
@@ -18,6 +17,10 @@ export enum SortOrder {
 }
 
 export class ProjectQueryDto extends PaginationDto {
+  @ApiPropertyOptional({ description: 'Search term for project name' })
+  @IsOptional()
+  @IsString()
+  search?: string;
 
   @ApiPropertyOptional({ enum: ProjectStatus, description: 'Filter by status' })
   @IsOptional()

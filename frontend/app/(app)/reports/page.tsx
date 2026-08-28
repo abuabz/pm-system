@@ -3,14 +3,19 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
+import { useAuthStore } from '@/store/use-auth-store';
+import { User } from 'lucide-react';
 
 export default function ReportsPage() {
+  const { user } = useAuthStore();
+
   const { data: projectProgress, isLoading: loadingProgress, error: errorProgress } = useQuery({
     queryKey: ['reports-project-progress'],
     queryFn: async () => {
       const { data } = await apiClient.get('/reports/project-progress');
       return data;
     },
+    enabled: !!user && user?.role?.name !== "Developer",
   });
 
   const { data: userProductivity, isLoading: loadingProductivity } = useQuery({
@@ -19,6 +24,7 @@ export default function ReportsPage() {
       const { data } = await apiClient.get('/reports/user-productivity');
       return data;
     },
+    enabled: !!user && user?.role?.name !== "Developer",
   });
 
   const { data: overdueTasks, isLoading: loadingOverdue } = useQuery({
@@ -27,7 +33,16 @@ export default function ReportsPage() {
       const { data } = await apiClient.get('/reports/overdue-tasks');
       return data;
     },
+    enabled: !!user && user?.role?.name !== "Developer",
   });
+
+  if (user?.role?.name === "Developer") {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-slate-500">You do not have permission to view Reports.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 p-6">
@@ -44,12 +59,12 @@ export default function ReportsPage() {
               <div className="h-[300px] w-full bg-muted animate-pulse rounded-md" />
             ) : errorProgress ? (
               <div className="h-[300px] flex items-center justify-center text-red-500">Failed to load data</div>
-            ) : projectProgress?.length === 0 ? (
+            ) : projectProgress?.data?.length === 0 ? (
               <div className="h-[300px] flex items-center justify-center text-muted-foreground">No projects found.</div>
             ) : (
               <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={projectProgress}>
+                  <BarChart data={projectProgress?.data}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis tickFormatter={(val: number) => `${val}%`} />
@@ -87,7 +102,7 @@ export default function ReportsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {userProductivity?.map((user: Record<string, unknown>, i: number) => (
+                    {userProductivity?.data?.map((user: Record<string, unknown>, i: number) => (
                       <tr key={i} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
                         <td className="px-4 py-3 font-medium">{user.name}</td>
                         <td className="px-4 py-3">{user.tasksCompleted}</td>
@@ -95,7 +110,7 @@ export default function ReportsPage() {
                         <td className="px-4 py-3 text-right">{user.totalActual}</td>
                       </tr>
                     ))}
-                    {!userProductivity?.length && (
+                    {!userProductivity?.data?.length && (
                       <tr>
                         <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
                           No productivity data available.
@@ -134,24 +149,27 @@ export default function ReportsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {overdueTasks?.map((task: Record<string, unknown>) => (
-                    <tr key={task.id} className="border-b border-red-100 dark:border-red-900 last:border-0">
+                  {overdueTasks?.data?.map((task: Record<string, any>) => (
+                    <tr key={task.id as string} className="border-b border-red-100 dark:border-red-900 last:border-0">
                       <td className="px-4 py-3 font-medium">{task.title}</td>
                       <td className="px-4 py-3">{task.project?.name || 'N/A'}</td>
                       <td className="px-4 py-3">
-                        {task.assignee ? `${task.assignee.firstName} ${task.assignee.lastName}` : 'Unassigned'}
+                        <div className="flex items-center">
+                          <User className="h-3 w-3 mr-1" />
+                          {task.assignee ? `${task.assignee.name}` : 'Unassigned'}
+                        </div>
                       </td>
                       <td className="px-4 py-3 font-semibold text-red-600 dark:text-red-400">
-                        {new Date(task.dueDate).toLocaleDateString()}
+                        {new Date(task.dueDate as string).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <span className="px-2 py-1 bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 rounded-full text-xs font-semibold">
-                          {task.status.replace('_', ' ')}
+                          {(task.status as string).replace('_', ' ')}
                         </span>
                       </td>
                     </tr>
                   ))}
-                  {!overdueTasks?.length && (
+                  {!overdueTasks?.data?.length && (
                     <tr>
                       <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
                         Great job! No overdue tasks.

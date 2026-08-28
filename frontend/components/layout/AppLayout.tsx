@@ -4,21 +4,27 @@ import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { useAuthStore } from "@/store/use-auth-store";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     // Basic protection (can be improved with middleware later)
-    if (!user && !pathname.startsWith('/login') && !pathname.startsWith('/register')) {
+    if (mounted && !user && !pathname.startsWith('/login') && !pathname.startsWith('/register')) {
       router.push('/login');
     }
-  }, [user, router, pathname]);
+  }, [user, router, pathname, mounted]);
 
-  if (!user) {
+  if (!mounted || !user) {
     return null; // Or a loading spinner
   }
 

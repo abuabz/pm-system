@@ -14,7 +14,12 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserQueryDto } from './dto/user-query.dto';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { Permissions } from '../common/decorators/permissions.decorator';
 import { AccountStatus } from '@prisma/client';
 
@@ -35,8 +40,7 @@ export class UsersController {
     const user = await this.usersService.create({
       email: createUserDto.email,
       passwordHash: createUserDto.password,
-      firstName: createUserDto.firstName,
-      lastName: createUserDto.lastName,
+      name: createUserDto.name,
       mobile: createUserDto.mobile,
       profilePicture: createUserDto.profilePicture,
       accountStatus: createUserDto.accountStatus,

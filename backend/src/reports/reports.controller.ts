@@ -1,6 +1,12 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ReportsService } from './reports.service';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiQuery,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { Permissions } from '../common/decorators/permissions.decorator';
 
 @ApiTags('reports')

@@ -34,4 +34,8 @@ export class CreateProjectDto {
   @IsOptional()
   @IsDateString()
   endDate?: string;
+
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  memberIds?: string[];
 }

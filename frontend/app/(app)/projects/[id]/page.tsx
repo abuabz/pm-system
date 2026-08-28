@@ -5,14 +5,31 @@ import { apiClient } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { LayoutDashboard, Users, Calendar, ArrowRight } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, ArrowRight, Edit2, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { use } from "react";
+import { use, useState } from "react";
 import { format } from "date-fns";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { EditProjectModal } from "../EditProjectModal";
+import { DeleteProjectModal } from "../DeleteProjectModal";
 
 export default function ProjectDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const projectId = resolvedParams.id;
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const deleteMutation = useMutation({
+    mutationFn: () => apiClient.delete(`/projects/${projectId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      router.push('/projects');
+    }
+  });
 
   const { data: project, isLoading } = useQuery({
     queryKey: ['project', projectId],
@@ -40,8 +57,14 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
           <p className="text-slate-500 mt-1">{p.description}</p>
         </div>
         <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={() => setIsEditModalOpen(true)}>
+            <Edit2 className="h-4 w-4 mr-2" /> Edit
+          </Button>
+          <Button variant="outline" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 border-red-200" onClick={() => setIsDeleteModalOpen(true)}>
+            <Trash2 className="h-4 w-4 mr-2" /> Delete
+          </Button>
           <Link href={`/projects/${p.id}/board`}>
-            <Button>
+            <Button size="sm">
               <LayoutDashboard className="mr-2 h-4 w-4" /> Go to Board <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
@@ -73,12 +96,12 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
           <CardContent>
             <div className="flex flex-wrap gap-4">
               {p.members?.map((m: any) => (
-                <div key={m.id} className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900 p-2 rounded-lg border border-slate-100 dark:border-slate-800">
-                  <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold">
-                    {m.user.firstName[0]}{m.user.lastName[0]}
+                <div key={m.userId} className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900 p-2 rounded-lg border border-slate-100 dark:border-slate-800">
+                  <div className="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-sm font-bold text-slate-600 dark:text-slate-300 mr-3">
+                    {m.user.name.substring(0, 2).toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-sm font-medium">{m.user.firstName} {m.user.lastName}</p>
+                    <p className="text-sm font-medium">{m.user.name}</p>
                     <p className="text-xs text-slate-500 capitalize">{m.role.toLowerCase()}</p>
                   </div>
                 </div>
@@ -87,6 +110,18 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
           </CardContent>
         </Card>
       </div>
+      <EditProjectModal 
+        open={isEditModalOpen} 
+        onOpenChange={setIsEditModalOpen} 
+        project={p}
+      />
+
+      <DeleteProjectModal 
+        open={isDeleteModalOpen} 
+        onOpenChange={setIsDeleteModalOpen} 
+        onConfirm={() => deleteMutation.mutate()}
+        isDeleting={deleteMutation.isPending}
+      />
     </div>
   );
 }

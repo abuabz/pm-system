@@ -21,13 +21,9 @@ export class CreateUserDto {
   @MaxLength(100)
   password: string;
 
-  @ApiProperty({ example: 'John' })
+  @ApiProperty({ example: 'John Doe' })
   @IsString()
-  firstName: string;
-
-  @ApiProperty({ example: 'Doe' })
-  @IsString()
-  lastName: string;
+  name: string;
 
   @ApiPropertyOptional({ example: '+1234567890' })
   @IsOptional()
@@ -39,10 +35,9 @@ export class CreateUserDto {
   @IsString()
   profilePicture?: string;
 
-  @ApiPropertyOptional({ example: 'uuid-of-role' })
-  @IsOptional()
+  @ApiProperty({ example: 'uuid-of-role' })
   @IsUUID()
-  roleId?: string;
+  roleId: string;
 
   @ApiPropertyOptional({ enum: AccountStatus, default: AccountStatus.ACTIVE })
   @IsOptional()
